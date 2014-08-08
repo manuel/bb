@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <title>Virtua</title>
+    <script src='../wat-js/build/wat.js' type='text/javascript'></script>
+    <script src='lib/purl.js' type='text/javascript'></script>
+    <script src='lib/ractive.min.js'></script>
+    <style type='text/css'>
+      html { font-family: sans; }
+      a { text-decoration: none; color: #00f; }
+      .author { float: right; font-size: x-small; }
+      .children { margin-left: 1em; }
+      .handle { font-size: large; padding-right: .125em; }
+      .parents, .parents .handle { font-size: x-small; }
+      .full { color: #00f; }
+      .empty { color: #ddf; }
+    </style>
+  </head>
+  <body onload='virtua_load()'>
+    <script type='text/javascript'>
+    function load_lisp_file(vm, name) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", name + "?" + Math.random(), true);
+        xhr.onload = function (e) {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    var n = new Date().getTime();
+                    vm.eval(xhr.responseText);
+                    console.log(name + " load time: " + (new Date().getTime() - n) + "ms");
+                } else {
+                    console.error(xhr.statusText);
+                }
+            }
+        };
+        xhr.onerror = function (e) {
+            console.error(xhr.statusText);
+        };
+        xhr.send(null);
+    }
+    function virtua_load() {
+        var vm = wat.vm();
+        load_lisp_file(vm, "virtua.scm");
+        load_lisp_file(vm, "virtua-ui.scm");
+//        load_lisp_file(vm, "test-virtua.scm");
+    }
+    </script>
+    <div id='output'>
+    </div>
+    <script id='node_template' type='text/ractive'>
+      <table border='0' cellpadding='0' cellspacing='0' width='100%'>
+        <tr>
+          <td width='1%' valign='top' class='handle'><a href='?path={{{path}}}'>{{{handle}}} </a></td>
+          <td>
+            {{#titles}}
+              <div class='author'>{{{author}}}</div>
+              <div class='main_title'>{{{text}}}</div>
+            {{/titles}}
+          </td>
+        </tr>
+      </table>
+    </script>
+    <script id='node_template_edit' type='text/ractive'>
+      <table border='0' cellpadding='0' cellspacing='0' width='100%'>
+        <tr>
+          <td width='1%' valign='top' class='handle'>{{{handle}}}</td>
+          <td>
+            <textarea value='{{title}}'></textarea>
+          </td>
+        </tr>
+      </table>
+    </script>
+    <script id='viewTemplate' type='text/ractive'>
+      <button on-click='edit'>edit</button>
+      <div class='parents'>
+        {{#parents}}
+          {{>node_template}}
+        {{/parents}}
+      </div>
+      <div class='main_node'>
+        {{>node_template}}
+      </div>
+      <div class='children'>
+        {{#children}}
+          {{>node_template}}
+        {{/children}}
+        <button on-click='new'>new</button>
+      </div>
+    </script>
+    <script id='editTemplate' type='text/ractive'>
+      <button on-click='save'>save</button>
+      <div class='parents'>
+        {{#parents}}
+          {{>node_template}}
+        {{/parents}}
+      </div>
+      <div class='main_node'>
+        {{>node_template_edit}}
+      </div>
+      <div class='children'>
+        {{#children}}
+          {{>node_template}}
+        {{/children}}
+      </div>
+    </script>
+  </body>
+</html>
